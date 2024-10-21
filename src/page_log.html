@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<style type="text/css">
+</style>
+<body style="background-color: #000000 ">                                                                                                       
+<center>
+<div>
+  <input type="color" class="button" onChange  ="send(this.value.slice(1))"></input>
+  <BR>
+</div>
+ <br>
+<div><h2>
+</h2>
+</div>
+<script>
+
+function send(led_sts) 
+{
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      document.getElementById("state").innerHTML = this.responseText;
+      
+    }
+  };
+  xhttp.open("GET", "led_set?state="+led_sts, true);
+  xhttp.send();
+}
+setInterval(function() 
+{
+  getData();
+}, 2000); 
+function getData() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      document.getElementById("state").innerHTML = this.responseText;
+    }
+  };
+  xhttp.open("GET", "adcread", true);
+  xhttp.send();
+}
+</script>
+</center>
+</body>
+</html>
