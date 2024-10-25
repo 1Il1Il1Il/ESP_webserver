@@ -1,5 +1,7 @@
 #include <Arduino.h>
 
+#include <ConfigSG.cpp>
+
 #define SP_AP_NAME "ESP Config"
 #define SP_AP_IP 192,168,1,1
 
@@ -23,7 +25,21 @@ static WebServer _SP_server(80);
 
 void StartConfPortal();
 
+
+
 void setup(){
+Serial.begin(115200);
+Serial.println();
+Serial.println();
+Serial.println("#######################################################################################");
+Serial.println();
+
+Config config(1024);
+
+config.Add("\0", "SSid");
+config.Add("6668888888888", "pass");
+
+config.Save();
 
 }
 
