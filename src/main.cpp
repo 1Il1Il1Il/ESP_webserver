@@ -29,15 +29,14 @@ void StartConfPortal();
 
 void setup(){
 Serial.begin(115200);
-Serial.println();
-Serial.println();
+for (int i = 0; i < 10; i++) Serial.println();
 Serial.println("#######################################################################################");
 Serial.println();
 
 Config config(1024);
 
-config.Add("\0", "SSid");
-config.Add("6668888888888", "pass");
+config.Add({0,1,245,152,12}, "SSid");
+//config.Add("DDDD", "pasass");
 
 config.Save();
 
