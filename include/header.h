@@ -1,11 +1,12 @@
-#define SP_AP_NAME "ESP Config"     // название точки
-#define SP_AP_IP 192,168,1,1        // IP точки
+#define SP_AP_NAME "ESP Config"
+#define SP_AP_IP 192,168,1,1
 
 #ifndef HEADER_H
 #define HEADER_H
 
+#include <adresses.h>
 #include <Arduino.h>
-
+#include <EEPROM.h>
 #include <DNSServer.h>
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
@@ -17,14 +18,18 @@
 
 extern const String loginWebPage;
 
-void StartWebSite();
-void SP_handleConnect();
+void handleConnect();
+void getEEPROMdata();
+void startMP();
+IPAddress strtoip(String str);
 
-class WiFiconfig
+class AccessPoint
 {
 public:
-    void startWP();
+    void startCP();
     void tick();
+    void stop();
+    bool status();
 };
 
 class timer
@@ -41,6 +46,9 @@ public:
 };
 
 extern char SSid[32];
-extern char Pass[32];
+extern char pass[32];
+extern IPAddress ip;
+extern IPAddress subnet;
+extern IPAddress gateway;
 
 #endif
