@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.html": "bat",
         "random": "cpp",
         "chrono": "cpp",
         "algorithm": "cpp",
@@ -12,7 +13,8 @@
         "vector": "cpp",
         "string_view": "cpp",
         "initializer_list": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "functional": "cpp"
     },
     "commentTranslate.targetLanguage": "ru",
     "commentTranslate.hover.enabled": true,
