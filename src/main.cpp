@@ -18,12 +18,17 @@ void setup(){
     Serial.printf("\n%i.%i.%i.%i", gateway[0], gateway[1], gateway[2], gateway[3]);
     Serial.printf("\n%i.%i.%i.%i", subnet[0], subnet[1], subnet[2], subnet[3]);
     
-    startMP();
+    //startMP();
     accessPoint.startCP();
     Timer1.start();
+    
+    static ESP8266WebServer server(80);
+    server.on("/connect", HTTP_POST, error);
 }
 
 void loop(){
+    delay(10000);
+    
     accessPoint.tick();
     if (restartAPtime.status()){
         accessPoint.stop();
@@ -31,3 +36,5 @@ void loop(){
         Serial.printf("\nAP has restarted");
     }
 }
+
+void error(){};
