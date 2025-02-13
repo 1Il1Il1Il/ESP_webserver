@@ -20,13 +20,21 @@ extern const String loginWebPage;
 
 void handleConnect();
 void getEEPROMdata();
-void startMP();
 IPAddress strtoip(String str);
 
 class AccessPoint
 {
-public:
+    public:
     void startCP();
+    void tick();
+    void stop();
+    bool status();
+};
+
+class MainPade
+{
+    public:
+    bool start();
     void tick();
     void stop();
     bool status();
