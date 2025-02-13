@@ -17,9 +17,11 @@
 #endif
 
 extern const String loginWebPage;
+extern const String WebPage;
 
 void handleConnect();
 void getEEPROMdata();
+void GetData();
 IPAddress strtoip(String str);
 
 class AccessPoint
@@ -34,7 +36,7 @@ class AccessPoint
 class MainPade
 {
     public:
-    bool start();
+    bool start(int tries);
     void tick();
     void stop();
     bool status();
