@@ -26,7 +26,6 @@ void setup(){
     accessPoint.stop();
     mainPage.stop();
 
-    fetchCurrentTime();
 }
 
 void loop(){
