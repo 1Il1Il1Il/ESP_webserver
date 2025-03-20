@@ -1,5 +1,7 @@
 #include <header.h>
 
+timer timepoint(1000, 3);
+
 #ifdef ESP8266
 static ESP8266WebServer server(80);
 #else
@@ -8,33 +10,44 @@ static WebServer server(80);
 
 bool _Status = false;
 bool _flag = false;
+byte connecting = 0;
 
-bool MainPade::start(int tries){
-    bool flag = true;
+byte MainPage::start(int tries){
+    static byte _try;
 
-    flag = WiFi.config(ip, gateway, subnet);
+    if (connecting == 0)
+    {    
+    connecting = 1;
+    
+    Serial.printf("Connecting to %s ..", SSid);
+    
+    if (WiFi.config(ip, gateway, subnet) == 0 || SSid[0] == '\0') {
+        connecting = 3;
+        Serial.println(" error");
+    }
+
     WiFi.mode(WIFI_STA);
     WiFi.begin(SSid, pass);
-     
-    bool flag2 = false;
-    Serial.print("Connecting to WiFi ..");
-    for (byte i = 0; i < tries; i++)
-    {
-        if (WiFi.status() == WL_CONNECTED){
-            Serial.println(" success");
-            flag2 = true;
-            break;
-            }
-        Serial.print('.');
-        delay(1000);  
+    
+    _try = 0;
     }
-    if (!flag2) {
-        flag = false;
+
+    if (connecting == 1) {
+    if (WiFi.status() == WL_CONNECTED){
+        Serial.println(" success");
+        connecting = 2;
+    }
+    if (timepoint.status()){ 
+        Serial.print('.');
+        _try++;
+    }
+    if (_try >= tries){
         Serial.println(" error");
-    } 
-    for (int i = 0; i < 4; i++)
-        if (WiFi.localIP()[i] != ip[i]) flag = false;
-   
+        connecting = 3;
+    }
+    }
+
+    if (connecting == 2) {
     Serial.println(WiFi.localIP());
 
     server.onNotFound([]() {
@@ -43,33 +56,43 @@ bool MainPade::start(int tries){
     server.on("/send", GetData);
     server.begin();
 
-    _Status = true;
+    connecting = 4;
 
-    return flag;
+    for (int i = 0; i < 4; i++)
+        if (WiFi.localIP()[i] != ip[i]) {
+            Serial.println(" error");
+            connecting = 3;
+        }
+
+    _Status = true;
+    }
+    return connecting;
 }
 
-void MainPade::tick(){
+void MainPage::tick(){
     if (_Status)
     server.handleClient();
 }
 
-bool MainPade::status(){
+bool MainPage::status(){
+    if (WiFi.status() != WL_CONNECTED){
+        _Status = false;
+    }
      return _Status;
+}
+
+void MainPage::stop(){
+    WiFi.disconnect();
+    WiFi.softAPdisconnect();
+    server.close();
+}
+
+void MainPage::reset(){
+    stop();
+    connecting = 0;
 }
 
 void GetData(){
     Serial.printf("\n"); 
     Serial.print(server.arg("str"));
-    if (_flag)
-    {
-        digitalWrite(2, 1);
-        _flag = false;
-    }
-    else
-    {
-        digitalWrite(2, 0);
-        _flag = true;
-    }
-    
-    
 }
