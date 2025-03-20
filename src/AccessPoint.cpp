@@ -1,6 +1,7 @@
 #include "header.h"
 
 bool Status = false;
+bool GotData = false; 
 
 char pass[32] = "";
 char SSid[32] = "";
@@ -32,6 +33,9 @@ void AccessPoint::startCP() {
   server.begin();
 
   Status = true;
+  GotData = false;  
+
+  Serial.printf("\nAP mode started");
 }
 
 void AccessPoint::stop() {
@@ -39,15 +43,20 @@ void AccessPoint::stop() {
   dnsServer.stop();
   server.close();
 
+  GotData = false;
   Status = false;
 }
 
-void AccessPoint::tick(){
+void AccessPoint::tick() {
   if (Status){
   dnsServer.processNextRequest();
   server.handleClient();
   yield();
   }
+}
+
+bool AccessPoint::gotStatus() {
+  return GotData;
 }
 
 bool AccessPoint::status(){
@@ -81,9 +90,15 @@ void handleConnect() {
   subnet = strtoip(buf);
   for (byte i = asubnet; i < 4 + asubnet; i++) {EEPROM.write(i, subnet[i2]); i2++;}
 
+  Serial.printf("\nSSid :\t%s\nPassword :\t%s", SSid, pass);
+  Serial.printf("\n%i.%i.%i.%i", ip[0], ip[1], ip[2], ip[3]);
+  Serial.printf("\n%i.%i.%i.%i", gateway[0], gateway[1], gateway[2], gateway[3]);
+  Serial.printf("\n%i.%i.%i.%i\n", subnet[0], subnet[1], subnet[2], subnet[3]);
+
   if (EEPROM.commit()) Serial.printf("\nEEPROM: success!");
   else Serial.printf("\nEEPROM: error!");
-  
+
+  GotData = true;  
 }
 
 IPAddress strtoip(String str) {
