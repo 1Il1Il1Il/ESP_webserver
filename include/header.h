@@ -22,6 +22,8 @@ extern const String WebPage;
 void handleConnect();
 void getEEPROMdata();
 void GetData();
+
+void HandleConnect();
 IPAddress strtoip(String str);
 
 class AccessPoint
@@ -31,14 +33,16 @@ class AccessPoint
     void tick();
     void stop();
     bool status();
+    bool gotStatus();
 };
 
-class MainPade
+class MainPage
 {
     public:
-    bool start(int tries);
+    byte start(int tries);
     void tick();
     void stop();
+    void reset();
     bool status();
 };
 
@@ -60,5 +64,7 @@ extern char pass[32];
 extern IPAddress ip;
 extern IPAddress subnet;
 extern IPAddress gateway;
+
+void fetchCurrentTime();
 
 #endif
