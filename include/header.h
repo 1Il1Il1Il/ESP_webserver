@@ -65,6 +65,5 @@ extern IPAddress ip;
 extern IPAddress subnet;
 extern IPAddress gateway;
 
-void fetchCurrentTime();
 
 #endif
