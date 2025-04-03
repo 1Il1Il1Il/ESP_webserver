@@ -25,3 +25,5 @@ void timer::start(){
     StartTime = millis();
     trigger = false;   
 }
+
+
