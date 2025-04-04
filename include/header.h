@@ -30,6 +30,9 @@
 #include <WiFiUdp.h>
 #include <NTPClient.h>
 
+#include <GyverNTP.h>
+#include <GyverDS3231Min.h>
+
 extern WiFiClient wifiClient; 
 
 extern const String loginWebPage;
@@ -56,6 +59,7 @@ void fillColor();
 void applyNum(byte num, byte value);
 void applyPoint();
 float rectifier(float value);
+float *hsv2rgb(float h, float s, float b, float *rgb);
 void GET();
 
 struct Curtime

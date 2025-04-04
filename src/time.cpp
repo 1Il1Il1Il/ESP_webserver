@@ -1,5 +1,6 @@
 #include <header.h>
 
+GyverDS3231Min rtc;
 
 long long ltime = 0;
 
@@ -34,28 +35,17 @@ void time1::update(String ntpserver)
     if (WiFi.status() != WL_CONNECTED)
         return;
 
-    WiFiUDP ntpUDP;
-    NTPClient timeClient(ntpUDP, ntpserver.c_str(), 10800);
+    rtc.begin();
+    NTP.setHost(ntpserver);
+    NTP.begin(3);
+    NTP.attachRTC(rtc);
 
-    timeClient.begin();
-    timeClient.update();
-    
-    curtime.Hour = timeClient.getHours();
-    curtime.Minutes = timeClient.getMinutes();
-    curtime.Seconds = timeClient.getSeconds();
+    if (!NTP.tick())
+        return;
 
-    
-    int currentHour = timeClient.getHours();
-    Serial.print("Hour: ");
-    Serial.println(currentHour);
+    curtime.Hour = NTP.hour();
+    curtime.Minutes = NTP.minute();
+    curtime.Seconds = NTP.second();
 
-    int currentMinute = timeClient.getMinutes();
-    Serial.print("Minutes: ");
-    Serial.println(currentMinute);
-
-    int currentSecond = timeClient.getSeconds();
-    Serial.print("Seconds: ");
-    Serial.println(currentSecond);
-
-    Serial.printf("\nTime has updated\n");
+    Serial.printf("\nTime has updated\th%i m%i s%i\t\n\n", curtime.Hour, curtime.Minutes, curtime.Seconds);
 }

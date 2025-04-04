@@ -13,10 +13,8 @@ timer timepoint(1000, 3);
 
 #ifdef ESP8266
 static ESP8266WebServer server(80);
-ESP8266WiFiMulti WiFiMulti;
 #else
-static WebServer server(80);
-WiFiMulti WiFiMulti;
+static WebServer server(80)
 #endif
 
 bool _Status = false;
@@ -33,7 +31,7 @@ byte MainPage::start(int tries)
 
         Serial.printf("Connecting to %s ..", SSid);
 
-        if (WiFi.config(ip, gateway, subnet, gateway, gateway) == 0 || SSid[0] == '\0')
+        if (WiFi.config(ip, gateway, subnet, IPAddress(8, 8, 8, 8), IPAddress(8, 8, 8, 8)) == 0 || SSid[0] == '\0')
         {
             connecting = 3;
             Serial.println(" error");
@@ -41,6 +39,9 @@ byte MainPage::start(int tries)
 
         WiFi.mode(WIFI_STA);
         WiFi.begin(SSid, pass);
+
+        Wire.begin();
+
 
         _try = 0;
     }

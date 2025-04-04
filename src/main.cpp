@@ -43,7 +43,7 @@ void loop()
     show();
 
     if (S.status())
-        Serial.printf("\n%i:%i:%i", _time.curtime.Hour, _time.curtime.Minutes, _time.curtime.Seconds);
+        Serial.printf("\n%i:%i:%i\t\n", _time.curtime.Hour, _time.curtime.Minutes, _time.curtime.Seconds);
 
     if (timeofget.status() || (WiFi.status() == WL_CONNECTED && firstconnect))
     {
