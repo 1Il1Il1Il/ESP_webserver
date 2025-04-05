@@ -7,7 +7,7 @@ handleLED HandleLED;
 timer restartAPtime(1000 * 60 * 15, 3);
 timer checkWiFi(1000 * 10, 3);
 timer updateTime(UPDATERATE, 3);
-timer timeofget(10 * 1  * 1000, 3);
+timer timeofget(10 * 60 * 1000, 3);
 timer SEND(1000, 3);
 timer S(1000, 3);
 
