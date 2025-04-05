@@ -1,12 +1,5 @@
 #include <header.h>
 
-#include <ESP8266WiFi.h>
-#include <ESP8266WiFiMulti.h>
-
-#include <ESP8266HTTPClient.h>
-
-#include <WiFiClient.h>
-
 int color = 0;
 
 timer timepoint(1000, 3);
@@ -121,10 +114,94 @@ void MainPage::send(String data)
     server.send(200, "text/plane", data);
 }
 
-void GetData()
-{
-    Serial.printf("\n");
-    Serial.print(server.arg("str"));
-    color = server.arg("str").toInt();
+void GetData() {
+    String str = server.arg("str");
+    Serial.printf("\nReceived: %s\n", str.c_str());
+
+    // Разделение строки на части
+    int firstSeparator = str.indexOf('|', 1);
+    int secondSeparator = str.indexOf('|', firstSeparator + 1);
+
+    if (firstSeparator != -1 && secondSeparator != -1) {
+        String type = str.substring(1, firstSeparator);
+        String id = str.substring(firstSeparator + 1, secondSeparator);
+        String value = str.substring(secondSeparator + 1);
+
+        Serial.printf("Type: %s, ID: %s, Value: %s\n", type.c_str(), id.c_str(), value.c_str());
+
+        // Обработка различных типов запросов
+        if (type == "input-text") {
+            if (id == "ntpServer") {
+                value.toCharArray((char*)(EEPROM.getDataPtr() + antpServer), antpServerSize); // Явное приведение типа
+                EEPROM.commit();
+            }
+        } else if (type == "input-number") {
+            long numberValue = value.toInt();
+            if (id == "periodTime") {
+                EEPROM.put(aperiodTime, numberValue);
+                EEPROM.commit();
+            } else if (id == "brightnessRange") {
+                EEPROM.put(abrightnessRange, numberValue);
+                EEPROM.commit();
+            } else if (id == "spectrumSpeed") {
+                EEPROM.put(aspectrumSpeed, numberValue);
+                EEPROM.commit();
+            } else if (id == "gradientShift") {
+                EEPROM.put(agradientShift, numberValue);
+                EEPROM.commit();
+            } else if (id == "gradientSize") {
+                EEPROM.put(agradientSize, numberValue);
+                EEPROM.commit();
+            } else if (id == "periodHour") {
+                EEPROM.put(aperiodHour, numberValue);
+                EEPROM.commit();
+            } else if (id == "lavaIntensity") {
+                EEPROM.put(alavaIntensity, numberValue);
+                EEPROM.commit();
+            }
+        } else if (type == "input-color") {
+            unsigned long colorValue = strtoul(value.c_str(), NULL, 16);
+            if (id == "staticColor") {
+                EEPROM.put(astaticColor, colorValue);
+                EEPROM.commit();
+            } else if (id == "celsiusColor") {
+                EEPROM.put(acelsiusColor, colorValue);
+                EEPROM.commit();
+            } else if (id == "percentageColor") {
+                EEPROM.put(apercentageColor, colorValue);
+                EEPROM.commit();
+            }
+        } else if (type == "checkbox") {
+            bool checked = (value == "1");
+            byte byteValue = checked ? 1 : 0;
+            if (id == "staticCheckbox") {
+                EEPROM.put(astaticCheckbox, byteValue);
+                EEPROM.commit();
+            } else if (id == "spectrumCheckbox") {
+                EEPROM.put(aspectrumCheckbox, byteValue);
+                EEPROM.commit();
+            } else if (id == "gradientCheckbox") {
+                EEPROM.put(agradientCheckbox, byteValue);
+                EEPROM.commit();
+            } else if (id == "periodCheckbox") {
+                EEPROM.put(aperiodCheckbox, byteValue);
+                EEPROM.commit();
+            } else if (id == "lavaMode") {
+                EEPROM.put(alavaMode, byteValue);
+                EEPROM.commit();
+            } else if (id == "celsiusColorCheckbox") {
+                EEPROM.put(acelsiusColorCheckbox, byteValue);
+                EEPROM.commit();
+            } else if (id == "percentageColorCheckbox") {
+                Serial.println("63452798634578964539784539876453978634528967");
+                EEPROM.put(apercentageColorCheckbox, byteValue);
+                EEPROM.commit();
+            } else if (id == "blinkPointCheckbox") {
+                Serial.println("63452798634578964539784539876453978634528967");
+                EEPROM.put(ablinkPointCheckbox, byteValue);
+                EEPROM.commit();
+            }
+        }
+    }
 }
 
