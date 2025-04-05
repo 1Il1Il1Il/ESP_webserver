@@ -4,6 +4,7 @@
 #define UPDATERATE 50
 
 #define PIN 0
+#define PIN D6
 #define NUMPIXELS 308
 
 #define TRYCONN 150
