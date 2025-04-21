@@ -3,17 +3,14 @@
 
 #define UPDATERATE 50
 
-#define PIN 0
-#define PIN D6
+#define PIN D3
 #define NUMPIXELS 308
 
-#define TRYCONN 150
+#define TRYCONN 30
 #define TRYGET 5
 
 #ifndef HEADER_H
 #define HEADER_H
-
-#include <Adafruit_NeoPixel.h>
 
 #include <adresses.h>
 #include <Arduino.h>
@@ -29,10 +26,15 @@
 #include <HTTPClient.h>
 #endif
 #include <WiFiUdp.h>
-#include <NTPClient.h>
 
 #include <GyverNTP.h>
 #include <GyverDS3231Min.h>
+
+#include <FastLED.h>
+
+
+
+//#include <DFRobot_AHT20.h>
 
 extern WiFiClient wifiClient; 
 
@@ -42,26 +44,39 @@ extern const String WebPage;
 extern int color;
 
 void handleConnect();
+
 void getEEPROMdata();
 void GetData();
 
-String GET_Request(const char *server);
-
-bool gettime();
-void show();
-void HandleConnect();
 IPAddress strtoip(String str);
 
 float fract(float x);
 float mix(float a, float b, float t);
 
-void fillLine(byte num, byte r, byte g, byte b);
-void fillColor();
-void applyNum(byte num, byte value);
-void applyPoint();
-float rectifier(float value);
-float *hsv2rgb(float h, float s, float b, float *rgb);
-void GET();
+struct data
+{
+    char storedNtpServer[antpServerSize];
+    long storedPeriodTime;
+    long storedBrightnessRange;
+    uint32_t storedStaticColor;
+    long storedSpectrumSpeed;
+    long storedGradientShift;
+    long storedGradientSize;
+    long storedPeriodHour;
+    long storedLavaIntensity;
+    uint32_t storedCelsiusColor;
+    uint32_t storedPercentageColor;
+    bool storedStaticCheckbox;
+    bool storedSpectrumCheckbox;
+    bool storedGradientCheckbox;
+    bool storedPeriodCheckbox;
+    bool storedLavaMode;
+    bool storedCelsiusColorCheckbox;
+    bool storedPercentageColorCheckbox;
+    bool storedBlinkPointCheckbox;
+    bool storedFlagTable[12];
+};
+extern data Data;
 
 struct Curtime
 {
@@ -110,6 +125,7 @@ private:
     long long StartTime;
     byte Mode;
     bool trigger;
+    bool act;
 
 public:
     long Time;
@@ -124,6 +140,7 @@ private:
     void show(byte ind, byte num, bool zero);
 public:
     handleLED();
+    void begin();
     void tick();
 
     leddata Leddata;
@@ -140,22 +157,13 @@ private:
 public:
     chngNum(long Max, long Dl);
     long value();
-};
-
-class API
-{
-public:
-    API();
-    String Weather();
-    String Time();
-    String GET(String url);
+    void Max(long MAX);
 };
 
 class time1
 {
 public:
     time1();
-    void update(String ntpserver);
     void tick();
     Curtime curtime;
 };
@@ -169,5 +177,7 @@ extern String NTPServer;
 extern IPAddress ip;
 extern IPAddress subnet;
 extern IPAddress gateway;
+extern IPAddress dns;
+extern IPAddress dns2;
 
 #endif

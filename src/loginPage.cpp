@@ -67,6 +67,12 @@ const String loginWebPage = R"rawliteral(
 			<p><input type="text" name="gateway" class="input-box" placeholder="gateway xxx.xxx.xxx.xxx" autocomplete="on" value="192.168.0.1"></p>
 			<p>subnet :</p>
 			<input type="text" name="subnet" class="input-box" placeholder="subnet xxx.xxx.xxx.xxx" autocomplete="on" value="255.255.255.0" />
+
+			<p>dns :</p>
+			<p><input type="text" name="dns" class="input-box" placeholder="dns xxx.xxx.xxx.xxx" autocomplete="on" value="8.8.8.8"></p>
+			<p>dns2 :</p>
+			<p><input type="text" name="dns2" class="input-box" placeholder="dns2 xxx.xxx.xxx.xxx" autocomplete="on" value="8.8.8.8"></p>
+
 			<p></p>
 			<input type="submit" value="Submit">
 		</form>

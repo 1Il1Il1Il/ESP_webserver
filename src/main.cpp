@@ -1,27 +1,39 @@
 #include "header.h"
 
-API api;
 AccessPoint accessPoint;
 MainPage mainPage;
 handleLED HandleLED;
+time1 _time;
+//DFRobot_AHT20 aht20;
+
 timer restartAPtime(1000 * 60 * 15, 3);
 timer checkWiFi(1000 * 10, 3);
 timer updateTime(UPDATERATE, 3);
 timer timeofget(10 * 60 * 1000, 3);
 timer SEND(1000, 3);
-timer S(1000, 3);
-
-time1 _time;
+timer printtime(1000, 3);
+timer updateSensorTimer(5000, 3);
 
 bool firstconnect = 1;
-
-String NTPServer = "1.pool.ntp.org";
 
 byte _WiFimode = 0;
 bool APflag = true;
 
+void updateSensor();
+void show();
+void HandleConnect();
+
 void setup()
 {
+    // uint8_t status;
+    // byte tries;
+    // while ((status = aht20.begin()) != 0 || tries++ >= 254)
+    // {
+    //     Serial.print("AHT20 sensor initialization failed. error status : ");
+    //     Serial.println(status);
+    //     delay(1000);
+    // }
+
     Serial.begin(9600);
     Serial.printf("\n\n\n\n\n################################## START ##################################\n\n");
 
@@ -32,38 +44,31 @@ void setup()
     Serial.printf("\nSSid :\t%s\nPassword :\t%s", SSid, pass);
     Serial.printf("\n%i.%i.%i.%i", ip[0], ip[1], ip[2], ip[3]);
     Serial.printf("\n%i.%i.%i.%i", gateway[0], gateway[1], gateway[2], gateway[3]);
-    Serial.printf("\n%i.%i.%i.%i\n", subnet[0], subnet[1], subnet[2], subnet[3]);
+    Serial.printf("\n%i.%i.%i.%i", subnet[0], subnet[1], subnet[2], subnet[3]);
+    Serial.printf("\n%i.%i.%i.%i", dns[0], dns[1], dns[2], dns[3]);
+    Serial.printf("\n%i.%i.%i.%i\n", dns2[0], dns2[1], dns2[2], dns2[3]);
 
     accessPoint.stop();
     mainPage.stop();
+
+    HandleLED.begin();
+    updateSensor();
 }
 
 void loop()
 {
     show();
 
-    if (S.status())
+    if (printtime.status())
         Serial.printf("\n%i:%i:%i\t\n", _time.curtime.Hour, _time.curtime.Minutes, _time.curtime.Seconds);
-
-    if (timeofget.status() || (WiFi.status() == WL_CONNECTED && firstconnect))
-    {
-        firstconnect = 0;
-        byte tryGET = 0;
-        bool gt = gettime();
-        Serial.printf("\n%i\n", gt);
-        while (!gt)
-        {
-            if (tryGET == TRYGET)
-            break;
-            tryGET++;
-            gt = gettime();
-        }
-    }
 
     HandleConnect();
 
     if (updateTime.status())
         HandleLED.tick();
+
+    if (updateSensorTimer.status())
+        updateSensor();
 }
 
 void HandleConnect()
@@ -99,48 +104,18 @@ void HandleConnect()
     }
 }
 
-bool gettime()
-{
-    if (WiFi.status() != WL_CONNECTED)
-        return 0;
-
-    byte oldSeconds = _time.curtime.Seconds;
-    byte oldMinutes = _time.curtime.Minutes;
-    byte oldHour = _time.curtime.Hour;
-    byte oldDay_Month = _time.curtime.Day_Month;
-    byte oldMonth = _time.curtime.Month;
-    int oldYear = _time.curtime.Year;
-
-    _time.update(NTPServer);
-
-    byte CheckHour = _time.curtime.Hour;
-    byte CheckMinutes = _time.curtime.Minutes;
-
-    _time.update(NTPServer);
-
-    if ((CheckHour != _time.curtime.Hour) || (CheckMinutes != _time.curtime.Minutes && _time.curtime.Minutes - CheckMinutes != (1 || -59)))
-    {
-        _time.curtime.Seconds = oldSeconds;
-        _time.curtime.Minutes = oldMinutes; 
-        _time.curtime.Hour = oldHour;
-        _time.curtime.Day_Month = oldDay_Month;
-        _time.curtime.Month = oldMonth;
-        _time.curtime.Year = oldYear;
-        Serial.printf("errorget336");
-        return 0;
-    }
-
-    return 1;
-}
-
 void show()
 {
     _time.tick();
 
     HandleLED.Leddata.Minutes = _time.curtime.Minutes;
     HandleLED.Leddata.Hour = _time.curtime.Hour;
-    HandleLED.Leddata.Temp = 99;
-    HandleLED.Leddata.Humidity = 50;
     HandleLED.Leddata.Day_Month = _time.curtime.Day_Month;
     HandleLED.Leddata.Month = _time.curtime.Month;
+}
+
+void updateSensor()
+{
+    // HandleLED.Leddata.Temp = aht20.getTemperature_C();
+    // HandleLED.Leddata.Humidity = aht20.getHumidity_RH();
 }

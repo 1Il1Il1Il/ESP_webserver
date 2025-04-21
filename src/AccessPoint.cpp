@@ -1,13 +1,15 @@
 #include "header.h"
 
 bool Status = false;
-bool GotData = false; 
+bool GotData = false;
 
 char pass[32] = "";
 char SSid[32] = "";
 IPAddress ip(0, 0, 0, 0);
 IPAddress subnet(0, 0, 0, 0);
 IPAddress gateway(0, 0, 0, 0);
+IPAddress dns(0, 0, 0, 0);
+IPAddress dns2(0, 0, 0, 0);
 
 static DNSServer dnsServer;
 #ifdef ESP8266
@@ -16,7 +18,8 @@ static ESP8266WebServer server(80);
 static WebServer server(80);
 #endif
 
-void AccessPoint::startCP() {
+void AccessPoint::startCP()
+{
   WiFi.softAPdisconnect();
   WiFi.disconnect();
   IPAddress apIP(SP_AP_IP);
@@ -26,19 +29,19 @@ void AccessPoint::startCP() {
   WiFi.softAP(SP_AP_NAME);
   dnsServer.start(53, "*", apIP);
 
-  server.onNotFound([]() {
-    server.send(200, "text/html", loginWebPage);
-  });
+  server.onNotFound([]()
+                    { server.send(200, "text/html", loginWebPage); });
   server.on("/connect", HTTP_POST, handleConnect);
   server.begin();
 
   Status = true;
-  GotData = false;  
+  GotData = false;
 
   Serial.printf("\nAP mode started");
 }
 
-void AccessPoint::stop() {
+void AccessPoint::stop()
+{
   WiFi.softAPdisconnect();
   dnsServer.stop();
   server.close();
@@ -47,72 +50,120 @@ void AccessPoint::stop() {
   Status = false;
 }
 
-void AccessPoint::tick() {
-  if (Status){
-  dnsServer.processNextRequest();
-  server.handleClient();
-  yield();
+void AccessPoint::tick()
+{
+  if (Status)
+  {
+    dnsServer.processNextRequest();
+    server.handleClient();
+    yield();
   }
 }
 
-bool AccessPoint::gotStatus() {
+bool AccessPoint::gotStatus()
+{
   return GotData;
 }
 
-bool AccessPoint::status(){
+bool AccessPoint::status()
+{
   return Status;
 }
 
-void handleConnect() {
+void handleConnect()
+{
   strcpy(SSid, server.arg("ssid").c_str());
   int i2 = 0;
-  for (int i = aSSid; i < (int)sizeof(SSid) + aSSid; i++) {EEPROM.write(i, SSid[i2]); i2++;}
+  for (int i = aSSid; i < (int)sizeof(SSid) + aSSid; i++)
+  {
+    EEPROM.write(i, SSid[i2]);
+    i2++;
+  }
 
   i2 = 0;
   strcpy(pass, server.arg("pass").c_str());
-  for (int i = apass; i < (int)sizeof(pass) + apass; i++) {EEPROM.write(i, pass[i2]); i2++;}
-
+  for (int i = apass; i < (int)sizeof(pass) + apass; i++)
+  {
+    EEPROM.write(i, pass[i2]);
+    i2++;
+  }
 
   static char buf[15] = "";
 
   i2 = 0;
   strcpy(buf, server.arg("ip").c_str());
   ip = strtoip(buf);
-  for (int i = aip; i < 4 + aip; i++) {EEPROM.write(i, ip[i2]); i2++;}
+  for (int i = aip; i < 4 + aip; i++)
+  {
+    EEPROM.write(i, ip[i2]);
+    i2++;
+  }
 
   i2 = 0;
   strcpy(buf, server.arg("gateway").c_str());
   gateway = strtoip(buf);
-  for (int i = agateway; i < 4 + agateway; i++) {EEPROM.write(i, gateway[i2]); i2++;}
+  for (int i = agateway; i < 4 + agateway; i++)
+  {
+    EEPROM.write(i, gateway[i2]);
+    i2++;
+  }
 
   i2 = 0;
   strcpy(buf, server.arg("subnet").c_str());
   subnet = strtoip(buf);
-  for (byte i = asubnet; i < 4 + asubnet; i++) {EEPROM.write(i, subnet[i2]); i2++;}
+  for (int i = asubnet; i < 4 + asubnet; i++)
+  {
+    EEPROM.write(i, subnet[i2]);
+    i2++;
+  }
+
+  i2 = 0;
+  strcpy(buf, server.arg("dns").c_str());
+  dns = strtoip(buf);
+  for (int i = adns; i < 4 + adns; i++)
+  {
+    Serial.printf("\n%i\t%i\n", i, dns[i2]);
+    EEPROM.write(i, dns[i2]);
+    i2++;
+  }
+
+  i2 = 0;
+  strcpy(buf, server.arg("dns2").c_str());
+  dns2 = strtoip(buf);
+  for (int i = adns2; i < 4 + adns2; i++)
+  {
+    Serial.printf("\n%i\t%i\n", i, dns2[i2]);
+    EEPROM.write(i, dns2[i2]);
+    i2++;
+  }
 
   Serial.printf("\nSSid :\t%s\nPassword :\t%s", SSid, pass);
   Serial.printf("\n%i.%i.%i.%i", ip[0], ip[1], ip[2], ip[3]);
   Serial.printf("\n%i.%i.%i.%i", gateway[0], gateway[1], gateway[2], gateway[3]);
   Serial.printf("\n%i.%i.%i.%i\n", subnet[0], subnet[1], subnet[2], subnet[3]);
 
-  if (EEPROM.commit()) Serial.printf("\nEEPROM: success!");
-  else Serial.printf("\nEEPROM: error!");
+  if (EEPROM.commit())
+    Serial.printf("\nEEPROM: success!");
+  else
+    Serial.printf("\nEEPROM: error!");
 
-  GotData = true;  
+  GotData = true;
 }
 
-IPAddress strtoip(String str) {
+IPAddress strtoip(String str)
+{
   IPAddress result(0, 0, 0, 0);
-  byte buf[str.length()+1];
-  str.getBytes(buf, str.length()+1);
+  byte buf[str.length() + 1];
+  str.getBytes(buf, str.length() + 1);
   byte i2 = 0;
   for (byte i = 0; i < str.length(); i++)
   {
-    if (buf[i] == 46) {
+    if (buf[i] == 46)
+    {
       i2++;
       continue;
     }
-    result[i2] = result[i2]*10 + buf[i] - 48;
+    result[i2] = result[i2] * 10 + buf[i] - 48;
   }
   return result;
 }

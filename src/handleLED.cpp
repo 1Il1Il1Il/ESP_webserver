@@ -127,26 +127,50 @@ const int nums[] = {
     1, 1, 1, 1, 0, 1, 1,
     0, 0, 0, 0, 0, 0, 0};
 
-Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+CRGB leds[NUMPIXELS];
 chngNum ChngNum(STEPS, UPDATERATE - 1);
-
 chngNum ChngPoint(2, 1000);
+long chngColortimer = 1000;
+long long chngColorlt;
+
+const byte maincolors[] = {
+    255, 0, 0,
+    255, 0, 125,
+    255, 0, 255,
+    75, 20, 255,
+    30, 99, 255,
+    0, 255, 255,
+    0, 255, 125,
+    0, 255, 0,
+    125, 255, 0,
+    255, 255, 0,
+    255, 125, 0,
+    255, 75, 0};
+byte currentcolor = 0;
+
+const int endspart[] = {
+    200, 42,
+    242, 42,
+    284, 12,
+    296, 12};
 
 float col[3];
+int Speed = 100;
+
+void fillLine(byte num, byte r, byte g, byte b);
+void fillColor(byte mode, byte index1, byte index2, CRGB rgb);
+void applyNum(byte num, byte value);
+void applyPoint();
+float rectifier(float value);
+float *hsv2rgb(float h, float s, float b, float *rgb);
+CRGB hex2rgb(uint32_t hex);
+void fillEnd(byte index1, CRGB color1);
 
 float rectifier(float value)
 {
-    static int ln;
     byte len = sizeof(tonlist) / sizeof(float) - 1;
     int numseg = (int)(value * len);
     float part = (value * len - numseg);
-    if (numseg != ln)
-    {
-        Serial.println(numseg);
-        Serial.println((double)(tonlist[numseg + 1] - tonlist[numseg]) / (double)tonlist[len]);
-        Serial.println("##############################");
-    }
-    ln = numseg;
     return tonlist[numseg] / tonlist[len] + (double)(tonlist[numseg + 1] - tonlist[numseg]) / (double)tonlist[len] * part;
 }
 
@@ -164,23 +188,94 @@ float mix(float a, float b, float t) { return a + (b - a) * t; }
 
 handleLED::handleLED()
 {
-    pixels.begin();
-    pixels.clear();
-    pixels.show();
+    chngColorlt = millis();
+}
+
+void handleLED::begin()
+{
+    FastLED.addLeds<WS2811, PIN, RGB>(leds, NUMPIXELS);
+    FastLED.clear();
+    FastLED.show();
 }
 
 void handleLED::tick()
 {
-    pixels.clear();
-    fillColor();
-    applyPoint();
+    FastLED.clear();
+
+    if (Data.storedStaticCheckbox)
+        fillColor(1, 0, 0, hex2rgb(Data.storedStaticColor));
+
+    if (Data.storedSpectrumCheckbox)
+    {
+        if (Speed != Data.storedSpectrumSpeed)
+        {
+            Speed = Data.storedSpectrumSpeed;
+            ChngNum.Max((int)((float)STEPS / (Speed / 100)));
+        }
+
+        fillColor(0, 0, 0, CRGB(0, 0, 0));
+    }
+
+    if (Data.storedGradientCheckbox)
+    {
+        fillColor(2, Data.storedGradientShift, Data.storedGradientSize, CRGB(0, 0, 0));
+    }
+
+    if (Data.storedPeriodCheckbox)
+    {
+        bool flag = 0;
+        for (byte i = 0; i < sizeof(Data.storedFlagTable) / sizeof(bool) / 3; i++)
+            if (Data.storedFlagTable[i])
+                flag = 1;
+        if (!flag)
+            return;
+
+        if (chngColortimer != Data.storedPeriodHour * 3600 * 1000)
+        {
+            chngColortimer = Data.storedPeriodHour * 3600 * 1000;
+            chngColorlt = millis();
+            currentcolor = 0;
+        }
+
+        if (millis() - chngColorlt >= chngColortimer || !Data.storedFlagTable[currentcolor])
+        {
+            chngColorlt = millis();
+            currentcolor++;
+            if (currentcolor >= sizeof(maincolors) / sizeof(byte) / 3)
+                currentcolor = 0;
+
+            while (!Data.storedFlagTable[currentcolor])
+            {
+                currentcolor++;
+                if (currentcolor >= sizeof(maincolors) / sizeof(byte) / 3)
+                    currentcolor = 0;
+            }
+        }
+
+        fillColor(3, currentcolor, 0, CRGB(0, 0, 0));
+    }
+
+    if (Data.storedCelsiusColorCheckbox)
+    {
+        fillEnd(0, hex2rgb(Data.storedCelsiusColor));
+        fillEnd(3, hex2rgb(Data.storedCelsiusColor));
+    }
+
+    if (Data.storedPercentageColorCheckbox)
+    {
+        fillEnd(1, hex2rgb(Data.storedPercentageColor));
+        fillEnd(2, hex2rgb(Data.storedPercentageColor));
+    }
+
+    if (Data.storedBlinkPointCheckbox)
+        applyPoint();
 
     show(0, Leddata.Hour, 1);
     show(1, Leddata.Minutes, 1);
     show(2, Leddata.Temp, 1);
     show(3, Leddata.Humidity, 1);
 
-    pixels.show();
+    FastLED.show();
 }
 
 void handleLED::show(byte ind, byte num, bool zero)
@@ -198,7 +293,7 @@ void handleLED::show(byte ind, byte num, bool zero)
 void clearSegment(int add, int size)
 {
     for (int i = add; i < add + size; i++)
-        pixels.setPixelColor(i, 0, 0, 0);
+        leds[i] = CRGB(0, 0, 0);
 }
 
 void applyNum(byte num, byte value)
@@ -214,16 +309,49 @@ void applyPoint()
 {
     if (!ChngPoint.value())
         for (byte i = POINTAPP; i < 4 + POINTAPP; i++)
-            pixels.setPixelColor(i, 0, 0, 0);
+            leds[i] = CRGB(0, 0, 0);
 }
 
-void fillColor()
+void fillColor(byte mode, byte index1, byte index2, CRGB rgb)
 {
-    float *rgb;
-    rgb = hsv2rgb(rectifier((float)ChngNum.value() / (float)STEPS), 1.0, 1.0, col);
-    for (int i = 0; i < NUMPIXELS; i++)
+    float k = (float)Data.storedBrightnessRange / 100.0;
+    float *color1;
+
+    switch (mode)
     {
-        pixels.setPixelColor(i, pixels.Color((int)((1.0 - rgb[0]) * 255), (int)((1.0 - rgb[1]) * 255), (int)((1.0 - rgb[2]) * 255)));
+    case 0:
+        color1 = hsv2rgb(rectifier((float)ChngNum.value() / ((float)STEPS / (Speed / 100))), 1.0, 1.0, col);
+        for (int i = 0; i < NUMPIXELS; i++)
+        {
+            leds[i] = CRGB((int)((1.0 - color1[0]) * 255 * k), (int)((1.0 - color1[1]) * 255 * k), (int)((1.0 - color1[2]) * 255 * k));
+        }
+        break;
+
+    case 1:
+        for (int i = 0; i < NUMPIXELS; i++)
+        {
+
+            leds[i] = rgb;
+        }
+        break;
+
+    case 2:
+        for (int i = 0; i < 7; i++)
+        {
+            color1 = hsv2rgb(rectifier((float)index1 / 100.0 + ((float)(index2 - index1) / 100.0 / 7.0 * (float)i)), 1.0, 1.0, col);
+            fillLine(i, (int)((1.0 - color1[0]) * 255 * k), (int)((1.0 - color1[1]) * 255 * k), (int)((1.0 - color1[2]) * 255 * k));
+        }
+        break;
+
+    case 3:
+        for (int i = 0; i < NUMPIXELS; i++)
+        {
+            leds[i] = CRGB(maincolors[index1 * 3 + 1], maincolors[index1 * 3], maincolors[index1 * 3 + 2]);
+        }
+        break;
+
+    default:
+        break;
     }
 }
 
@@ -233,41 +361,57 @@ void fillLine(byte num, byte r, byte g, byte b)
     {
     case 0:
         for (int i = 0; i < (byte)sizeof(Line1) / (byte)sizeof(int); i++)
-            pixels.setPixelColor(Line1[i], r, g, b);
+            leds[Line1[i]] = CRGB(r, g, b);
         break;
 
     case 1:
         for (int i = 0; i < (byte)sizeof(Line2) / (byte)sizeof(int); i++)
-            pixels.setPixelColor(Line2[i], r, g, b);
+            leds[Line2[i]] = CRGB(r, g, b);
         break;
 
     case 2:
         for (int i = 0; i < (byte)sizeof(Line3) / (byte)sizeof(int); i++)
-            pixels.setPixelColor(Line3[i], r, g, b);
+            leds[Line3[i]] = CRGB(r, g, b);
         break;
 
     case 3:
         for (int i = 0; i < (byte)sizeof(Line4) / (byte)sizeof(int); i++)
-            pixels.setPixelColor(Line4[i], r, g, b);
+            leds[Line4[i]] = CRGB(r, g, b);
+        leds[42] = CRGB(r, g, b);
+        leds[91] = CRGB(r, g, b);
+        leds[144] = CRGB(r, g, b);
+        leds[193] = CRGB(r, g, b);
         break;
 
     case 4:
         for (int i = 0; i < (byte)sizeof(Line5) / (byte)sizeof(int); i++)
-            pixels.setPixelColor(Line5[i], r, g, b);
+            leds[Line5[i]] = CRGB(r, g, b);
         break;
 
     case 5:
         for (int i = 0; i < (byte)sizeof(Line6) / (byte)sizeof(int); i++)
-            pixels.setPixelColor(Line6[i], r, g, b);
+            leds[Line6[i]] = CRGB(r, g, b);
         break;
 
     case 6:
         for (int i = 0; i < (byte)sizeof(Line7) / (byte)sizeof(int); i++)
-            pixels.setPixelColor(Line7[i], r, g, b);
+            leds[Line7[i]] = CRGB(r, g, b);
         break;
 
     default:
         break;
     }
-    Serial.println("11111111111111111111111111111111111111111111");
+}
+
+void fillEnd(byte index1, CRGB color1)
+{
+    for (int i = endspart[index1 * 2]; i < endspart[index1 * 2] + endspart[index1 * 2 + 1]; i++)
+    {
+        leds[i] = color1;
+    }
+}
+
+CRGB hex2rgb(uint32_t hex)
+{
+    return CRGB((hex >> 8) & 0xFF, (hex >> 16) & 0xFF, hex & 0xFF);
 }

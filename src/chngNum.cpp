@@ -5,6 +5,13 @@ chngNum::chngNum(long Max, long Dl)
     max = Max;
     dl = Dl;
     ltime = millis();
+    num = 0;
+}
+
+void chngNum::Max(long MAX){
+    max = MAX;
+    num = 0;
+
 }
 
 long chngNum::value()

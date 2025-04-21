@@ -1,11 +1,11 @@
-#define aSSid 0
-#define apass 32
+#define aSSid 512-32
+#define apass 512-64
 
-#define aip 64
-#define agateway 68
-#define asubnet 72
-#define adns 76
-#define adns2 80
+#define aip 512 - 64 - 4
+#define agateway 512 - 68 - 4
+#define asubnet 512 - 72 - 4
+#define adns 512 - 76 - 4
+#define adns2 512 - 80 - 4
 
 #define antpServer 84
 #define aperiodTime 184
@@ -18,6 +18,15 @@
 #define alavaIntensity 212
 #define acelsiusColor 216
 #define apercentageColor 220
+#define astaticCheckbox 224
+#define aspectrumCheckbox 225
+#define agradientCheckbox 226
+#define aperiodCheckbox 227
+#define alavaMode 228
+#define acelsiusColorCheckbox 229
+#define apercentageColorCheckbox 230
+#define ablinkPointCheckbox 231
+#define aFlagTable 260 // Начало адреса для таблицы флагов
 
 #define aSSidSize 32
 #define apassSize 32
@@ -32,20 +41,11 @@
 #define astaticColorSize 4
 #define aspectrumSpeedSize 4
 #define agradientShiftSize 4
+#define agradientSize 4
 #define aperiodHourSize 4
 #define alavaIntensitySize 4
 #define acelsiusColorSize 4
 #define apercentageColorSize 4
-
-#define astaticCheckbox 224
-#define aspectrumCheckbox 225
-#define agradientCheckbox 226
-#define aperiodCheckbox 227
-#define alavaMode 228
-#define acelsiusColorCheckbox 229
-#define apercentageColorCheckbox 230
-#define ablinkPointCheckbox 231
-
 #define astaticCheckboxSize 1
 #define aspectrumCheckboxSize 1
 #define agradientCheckboxSize 1
@@ -54,3 +54,4 @@
 #define acelsiusColorCheckboxSize 1
 #define apercentageColorCheckboxSize 1
 #define ablinkPointCheckboxSize 1
+#define aFlagTableSize 12 // Размер таблицы флагов (12 флагов * 1 байт на флаг)

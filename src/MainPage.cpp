@@ -24,7 +24,7 @@ byte MainPage::start(int tries)
 
         Serial.printf("Connecting to %s ..", SSid);
 
-        if (WiFi.config(ip, gateway, subnet, IPAddress(8, 8, 8, 8), IPAddress(8, 8, 8, 8)) == 0 || SSid[0] == '\0')
+        if (WiFi.config(ip, gateway, subnet, dns, dns2) == 0 || SSid[0] == '\0')
         {
             connecting = 3;
             Serial.println(" error");
@@ -34,7 +34,6 @@ byte MainPage::start(int tries)
         WiFi.begin(SSid, pass);
 
         Wire.begin();
-
 
         _try = 0;
     }
@@ -63,7 +62,8 @@ byte MainPage::start(int tries)
         Serial.println(WiFi.localIP());
 
         server.onNotFound([]()
-                          { server.send(200, "text/html", WebPage); });
+                          {server.send(200, "text/html", WebPage); 
+            });
         server.on("/send", GetData);
         server.begin();
 
@@ -114,7 +114,8 @@ void MainPage::send(String data)
     server.send(200, "text/plane", data);
 }
 
-void GetData() {
+void GetData()
+{
     String str = server.arg("str");
     Serial.printf("\nReceived: %s\n", str.c_str());
 
@@ -122,86 +123,174 @@ void GetData() {
     int firstSeparator = str.indexOf('|', 1);
     int secondSeparator = str.indexOf('|', firstSeparator + 1);
 
-    if (firstSeparator != -1 && secondSeparator != -1) {
+    if (firstSeparator != -1)
+    {
         String type = str.substring(1, firstSeparator);
         String id = str.substring(firstSeparator + 1, secondSeparator);
         String value = str.substring(secondSeparator + 1);
 
         Serial.printf("Type: %s, ID: %s, Value: %s\n", type.c_str(), id.c_str(), value.c_str());
 
-        // Обработка различных типов запросов
-        if (type == "input-text") {
-            if (id == "ntpServer") {
-                value.toCharArray((char*)(EEPROM.getDataPtr() + antpServer), antpServerSize); // Явное приведение типа
+        if (id == "resetwifi")
+        {
+            for (int i = adns2; i < 512; i++)
+                EEPROM.write(i, 0);
+            EEPROM.commit();
+        }
+
+        if (id == "resetmemory")
+        {
+            for (int i = 0; i < 512; i++)
+                EEPROM.write(i, 0);
+            EEPROM.commit();
+        }
+
+        if (id == "reset")
+        {
+            ESP.reset();
+        }
+
+        if (type == "input-text")
+        {
+            if (id == "ntpServer")
+            {
+                value.toCharArray(Data.storedNtpServer, antpServerSize); // Запись в переменную
+                EEPROM.put(antpServer, Data.storedNtpServer);            // Запись в EEPROM
                 EEPROM.commit();
             }
-        } else if (type == "input-number") {
+        }
+
+        else if (type == "input-number" || type == "input-range")
+        {
             long numberValue = value.toInt();
-            if (id == "periodTime") {
-                EEPROM.put(aperiodTime, numberValue);
-                EEPROM.commit();
-            } else if (id == "brightnessRange") {
-                EEPROM.put(abrightnessRange, numberValue);
-                EEPROM.commit();
-            } else if (id == "spectrumSpeed") {
-                EEPROM.put(aspectrumSpeed, numberValue);
-                EEPROM.commit();
-            } else if (id == "gradientShift") {
-                EEPROM.put(agradientShift, numberValue);
-                EEPROM.commit();
-            } else if (id == "gradientSize") {
-                EEPROM.put(agradientSize, numberValue);
-                EEPROM.commit();
-            } else if (id == "periodHour") {
-                EEPROM.put(aperiodHour, numberValue);
-                EEPROM.commit();
-            } else if (id == "lavaIntensity") {
-                EEPROM.put(alavaIntensity, numberValue);
+            if (id == "periodTime")
+            {
+                Data.storedPeriodTime = numberValue;
+                EEPROM.put(aperiodTime, Data.storedPeriodTime);
                 EEPROM.commit();
             }
-        } else if (type == "input-color") {
+            else if (id == "brightnessRange")
+            {
+                Data.storedBrightnessRange = numberValue;
+                EEPROM.put(abrightnessRange, Data.storedBrightnessRange);
+                EEPROM.commit();
+            }
+            else if (id == "spectrumSpeed")
+            {
+                Data.storedSpectrumSpeed = numberValue;
+                EEPROM.put(aspectrumSpeed, Data.storedSpectrumSpeed);
+                EEPROM.commit();
+            }
+            else if (id == "gradientShift")
+            {
+                Data.storedGradientShift = numberValue;
+                EEPROM.put(agradientShift, Data.storedGradientShift);
+                EEPROM.commit();
+            }
+            else if (id == "gradientSize")
+            {
+                Data.storedGradientSize = numberValue;
+                EEPROM.put(agradientSize, Data.storedGradientSize);
+                EEPROM.commit();
+            }
+            else if (id == "periodHour")
+            {
+                Data.storedPeriodHour = numberValue;
+                EEPROM.put(aperiodHour, Data.storedPeriodHour);
+                EEPROM.commit();
+            }
+            else if (id == "lavaIntensity")
+            {
+                Data.storedLavaIntensity = numberValue;
+                EEPROM.put(alavaIntensity, Data.storedLavaIntensity);
+                EEPROM.commit();
+            }
+        }
+        else if (type == "input-color")
+        {
             unsigned long colorValue = strtoul(value.c_str(), NULL, 16);
-            if (id == "staticColor") {
-                EEPROM.put(astaticColor, colorValue);
-                EEPROM.commit();
-            } else if (id == "celsiusColor") {
-                EEPROM.put(acelsiusColor, colorValue);
-                EEPROM.commit();
-            } else if (id == "percentageColor") {
-                EEPROM.put(apercentageColor, colorValue);
+            if (id == "staticColor")
+            {
+                Data.storedStaticColor = colorValue;
+                EEPROM.put(astaticColor, Data.storedStaticColor);
                 EEPROM.commit();
             }
-        } else if (type == "checkbox") {
+            else if (id == "celsiusColor")
+            {
+                Data.storedCelsiusColor = colorValue;
+                EEPROM.put(acelsiusColor, Data.storedCelsiusColor);
+                EEPROM.commit();
+            }
+            else if (id == "percentageColor")
+            {
+                Data.storedPercentageColor = colorValue;
+                EEPROM.put(apercentageColor, Data.storedPercentageColor);
+                EEPROM.commit();
+            }
+        }
+        else if (type == "checkbox")
+        {
             bool checked = (value == "1");
             byte byteValue = checked ? 1 : 0;
-            if (id == "staticCheckbox") {
+            if (id == "staticCheckbox")
+            {
+                Data.storedStaticCheckbox = checked;
                 EEPROM.put(astaticCheckbox, byteValue);
                 EEPROM.commit();
-            } else if (id == "spectrumCheckbox") {
+            }
+            else if (id == "spectrumCheckbox")
+            {
+                Data.storedSpectrumCheckbox = checked;
                 EEPROM.put(aspectrumCheckbox, byteValue);
                 EEPROM.commit();
-            } else if (id == "gradientCheckbox") {
+            }
+            else if (id == "gradientCheckbox")
+            {
+                Data.storedGradientCheckbox = checked;
                 EEPROM.put(agradientCheckbox, byteValue);
                 EEPROM.commit();
-            } else if (id == "periodCheckbox") {
+            }
+            else if (id == "periodCheckbox")
+            {
+                Data.storedPeriodCheckbox = checked;
                 EEPROM.put(aperiodCheckbox, byteValue);
                 EEPROM.commit();
-            } else if (id == "lavaMode") {
+            }
+            else if (id == "lavaMode")
+            {
+                Data.storedLavaMode = checked;
                 EEPROM.put(alavaMode, byteValue);
                 EEPROM.commit();
-            } else if (id == "celsiusColorCheckbox") {
+            }
+            else if (id == "celsiusColorCheckbox")
+            {
+                Data.storedCelsiusColorCheckbox = checked;
                 EEPROM.put(acelsiusColorCheckbox, byteValue);
                 EEPROM.commit();
-            } else if (id == "percentageColorCheckbox") {
-                Serial.println("63452798634578964539784539876453978634528967");
+            }
+            else if (id == "percentageColorCheckbox")
+            {
+                Data.storedPercentageColorCheckbox = checked;
                 EEPROM.put(apercentageColorCheckbox, byteValue);
                 EEPROM.commit();
-            } else if (id == "blinkPointCheckbox") {
-                Serial.println("63452798634578964539784539876453978634528967");
+            }
+            else if (id == "blinkPointCheckbox")
+            {
+                Data.storedBlinkPointCheckbox = checked;
                 EEPROM.put(ablinkPointCheckbox, byteValue);
                 EEPROM.commit();
+            }
+            else if (id.indexOf("colorCell") != -1)
+            {
+                id.remove(0, 9);
+                byte index = id.toInt() - 1; // Получаем индекс флага (0-11)
+                if (index >= 0 && index < 12)
+                {
+                    Data.storedFlagTable[index] = checked;
+                    EEPROM.put(aFlagTable + index, byteValue); // Сохраняем флаг
+                    EEPROM.commit();
+                }
             }
         }
     }
 }
-
