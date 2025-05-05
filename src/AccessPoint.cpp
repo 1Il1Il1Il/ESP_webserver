@@ -1,7 +1,7 @@
 #include "header.h"
 
-bool Status = false;
-bool GotData = false;
+// bool Status = false;
+// bool GotData = false;
 
 char pass[32] = "";
 char SSid[32] = "";
@@ -11,159 +11,201 @@ IPAddress gateway(0, 0, 0, 0);
 IPAddress dns(0, 0, 0, 0);
 IPAddress dns2(0, 0, 0, 0);
 
-static DNSServer dnsServer;
-#ifdef ESP8266
-static ESP8266WebServer server(80);
-#else
-static WebServer server(80);
-#endif
+// static DNSServer dnsServer;
+// #ifdef ESP8266
+// static ESP8266WebServer server(80);
+// #else
+// static WebServer server(80);
+// #endif
 
 void AccessPoint::startCP()
 {
-  WiFi.softAPdisconnect();
-  WiFi.disconnect();
-  IPAddress apIP(SP_AP_IP);
-  IPAddress subnet(255, 255, 255, 0);
-  WiFi.mode(WIFI_AP);
-  WiFi.softAPConfig(apIP, apIP, subnet);
-  WiFi.softAP(SP_AP_NAME);
-  dnsServer.start(53, "*", apIP);
+  // WiFi.softAPdisconnect();
+  // WiFi.disconnect();
 
-  server.onNotFound([]()
-                    { server.send(200, "text/html", loginWebPage); });
-  server.on("/connect", HTTP_POST, handleConnect);
-  server.begin();
+  // IPAddress apIP(SP_AP_IP);
+  // IPAddress subnet(255, 255, 255, 0);
 
-  Status = true;
-  GotData = false;
+  // WiFi.mode(WIFI_AP);
+  // WiFi.softAPConfig(apIP, apIP, subnet);
+  // WiFi.softAP(SP_AP_NAME);
 
-  Serial.printf("\nAP mode started");
+  // dnsServer.start(53, "*", apIP);
+
+  // server.on("/", HTTP_GET, []()
+  //           { server.send(200, "text/html", loginWebPage); });
+
+  // server.onNotFound([]()
+  //                   { server.send(200, "text/html", loginWebPage); });
+
+  // server.on("/connect", HTTP_POST, handleConnect);
+  // server.begin();
+
+  // Status = true;
+  // GotData = false;
+
+  // Serial.printf("\nAP mode started. Access config at http://%s\n", apIP.toString().c_str());
 }
 
 void AccessPoint::stop()
 {
-  WiFi.softAPdisconnect();
-  dnsServer.stop();
-  server.close();
+  // WiFi.softAPdisconnect();
+  // dnsServer.stop();
+  // server.close();
 
-  GotData = false;
-  Status = false;
+  // GotData = false;
+  // Status = false;
+  // Serial.printf("\nAP mode stopped.\n");
 }
 
 void AccessPoint::tick()
 {
-  if (Status)
-  {
-    dnsServer.processNextRequest();
-    server.handleClient();
-    yield();
-  }
+  // if (Status)
+  // {
+  //   dnsServer.processNextRequest();
+  //   server.handleClient();
+  //   yield();
+  // }
 }
 
 bool AccessPoint::gotStatus()
 {
-  return GotData;
+  return 0;
 }
 
 bool AccessPoint::status()
 {
-  return Status;
+  return 0;
 }
 
 void handleConnect()
 {
-  strcpy(SSid, server.arg("ssid").c_str());
-  int i2 = 0;
-  for (int i = aSSid; i < (int)sizeof(SSid) + aSSid; i++)
-  {
-    EEPROM.write(i, SSid[i2]);
-    i2++;
-  }
+//   strncpy(SSid, server.arg("ssid").c_str(), sizeof(SSid) - 1);
+//   SSid[sizeof(SSid) - 1] = '\0';
+//   for (int i = 0; i < sizeof(SSid); i++)
+//   {
+//     EEPROM.write(aSSid + i, SSid[i]);
+//   }
 
-  i2 = 0;
-  strcpy(pass, server.arg("pass").c_str());
-  for (int i = apass; i < (int)sizeof(pass) + apass; i++)
-  {
-    EEPROM.write(i, pass[i2]);
-    i2++;
-  }
+//   strncpy(pass, server.arg("pass").c_str(), sizeof(pass) - 1);
+//   pass[sizeof(pass) - 1] = '\0';
+//   for (int i = 0; i < sizeof(pass); i++)
+//   {
+//     EEPROM.write(apass + i, pass[i]);
+//   }
 
-  static char buf[15] = "";
+//   static char buf[16] = "";
 
-  i2 = 0;
-  strcpy(buf, server.arg("ip").c_str());
-  ip = strtoip(buf);
-  for (int i = aip; i < 4 + aip; i++)
-  {
-    EEPROM.write(i, ip[i2]);
-    i2++;
-  }
+//   strncpy(buf, server.arg("ip").c_str(), sizeof(buf) - 1);
+//   buf[(byte)sizeof(buf) - 1] = '\0';
+//   ip = strtoip(buf);
 
-  i2 = 0;
-  strcpy(buf, server.arg("gateway").c_str());
-  gateway = strtoip(buf);
-  for (int i = agateway; i < 4 + agateway; i++)
-  {
-    EEPROM.write(i, gateway[i2]);
-    i2++;
-  }
+//   for (int i = 0; i < 4; i++)
+//   {
+//     EEPROM.write(aip + i, ip[i]);
+//   }
 
-  i2 = 0;
-  strcpy(buf, server.arg("subnet").c_str());
-  subnet = strtoip(buf);
-  for (int i = asubnet; i < 4 + asubnet; i++)
-  {
-    EEPROM.write(i, subnet[i2]);
-    i2++;
-  }
+//   strncpy(buf, server.arg("gateway").c_str(), sizeof(buf) - 1);
+//   buf[(byte)sizeof(buf) - 1] = '\0';
+//   gateway = strtoip(buf);
+//   for (int i = 0; i < 4; i++)
+//   {
+//     EEPROM.write(agateway + i, gateway[i]);
+//   }
 
-  i2 = 0;
-  strcpy(buf, server.arg("dns").c_str());
-  dns = strtoip(buf);
-  for (int i = adns; i < 4 + adns; i++)
-  {
-    Serial.printf("\n%i\t%i\n", i, dns[i2]);
-    EEPROM.write(i, dns[i2]);
-    i2++;
-  }
+//   strncpy(buf, server.arg("subnet").c_str(), sizeof(buf) - 1);
+//   buf[(byte)sizeof(buf) - 1] = '\0';
+//   subnet = strtoip(buf);
+//   for (int i = 0; i < 4; i++)
+//   {
+//     EEPROM.write(asubnet + i, subnet[i]);
+//   }
 
-  i2 = 0;
-  strcpy(buf, server.arg("dns2").c_str());
-  dns2 = strtoip(buf);
-  for (int i = adns2; i < 4 + adns2; i++)
-  {
-    Serial.printf("\n%i\t%i\n", i, dns2[i2]);
-    EEPROM.write(i, dns2[i2]);
-    i2++;
-  }
+//   strncpy(buf, server.arg("dns").c_str(), sizeof(buf) - 1);
+//   buf[sizeof(buf) - 1] = '\0';
+//   dns = strtoip(buf);
 
-  Serial.printf("\nSSid :\t%s\nPassword :\t%s", SSid, pass);
-  Serial.printf("\n%i.%i.%i.%i", ip[0], ip[1], ip[2], ip[3]);
-  Serial.printf("\n%i.%i.%i.%i", gateway[0], gateway[1], gateway[2], gateway[3]);
-  Serial.printf("\n%i.%i.%i.%i\n", subnet[0], subnet[1], subnet[2], subnet[3]);
+//   for (int i = 0; i < 4; i++)
+//   {
+//     EEPROM.write(adns + i, dns[i]);
+//     Serial.printf("\nEEPROM write DNS byte %i at addr %i: %i\n", i, adns + i, dns[i]);
+//   }
 
-  if (EEPROM.commit())
-    Serial.printf("\nEEPROM: success!");
-  else
-    Serial.printf("\nEEPROM: error!");
+//   strncpy(buf, server.arg("dns2").c_str(), sizeof(buf) - 1);
+//   buf[sizeof(buf) - 1] = '\0';
+//   dns2 = strtoip(buf);
+//   for (int i = 0; i < 4; i++)
+//   {
+//     EEPROM.write(adns2 + i, dns2[i]);
+//     Serial.printf("\nEEPROM write DNS2 byte %i at addr %i: %i\n", i, adns2 + i, dns2[i]);
+//   }
 
-  GotData = true;
+//   Serial.printf("\nSSid :\t%s\nPassword :\t%s\n", SSid, pass);
+//   Serial.printf("Static IP:\t%s\n", ip.toString().c_str());
+//   Serial.printf("Gateway:\t%s\n", gateway.toString().c_str());
+//   Serial.printf("Subnet:\t\t%s\n", subnet.toString().c_str());
+//   Serial.printf("DNS1:\t\t%s\n", dns.toString().c_str());
+//   Serial.printf("DNS2:\t\t%s\n", dns2.toString().c_str());
+
+//   if (EEPROM.commit())
+//   {
+//     Serial.printf("\nEEPROM write success!");
+//   }
+//   else
+//   {
+//     Serial.printf("\nEEPROM write error!");
+//   }
+
+//   GotData = true;
+
+//   server.send(200, "text/plain", "Configuration received. Device will attempt to connect to WiFi.");
 }
 
 IPAddress strtoip(String str)
 {
-  IPAddress result(0, 0, 0, 0);
-  byte buf[str.length() + 1];
-  str.getBytes(buf, str.length() + 1);
-  byte i2 = 0;
-  for (byte i = 0; i < str.length(); i++)
-  {
-    if (buf[i] == 46)
-    {
-      i2++;
-      continue;
-    }
-    result[i2] = result[i2] * 10 + buf[i] - 48;
-  }
-  return result;
+//   IPAddress result(0, 0, 0, 0);
+//   byte octet[4] = {0, 0, 0, 0};
+//   int octetIndex = 0;
+//   int currentByteValue = 0;
+
+//   for (int i = 0; i < str.length(); i++)
+//   {
+//     char c = str.charAt(i);
+//     if (c == '.')
+//     {
+//       if (octetIndex < 3)
+//       {
+//         octet[octetIndex++] = currentByteValue;
+//         currentByteValue = 0;
+//       }
+//       else
+//       {
+//         return IPAddress(0, 0, 0, 0);
+//       }
+//     }
+//     else if (c >= '0' && c <= '9')
+//     {
+//       currentByteValue = currentByteValue * 10 + (c - '0');
+//       if (currentByteValue > 255)
+//       {
+//         return IPAddress(0, 0, 0, 0);
+//       }
+//     }
+//     else
+//     {
+//       return IPAddress(0, 0, 0, 0);
+//     }
+//   }
+
+//   if (octetIndex == 3)
+//   {
+//     octet[octetIndex] = currentByteValue;
+//     result = IPAddress(octet[0], octet[1], octet[2], octet[3]);
+//   }
+//   else
+//   {
+//     result = IPAddress(0, 0, 0, 0);
+//   }
+
+return 0;
 }

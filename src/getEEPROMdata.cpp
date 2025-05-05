@@ -66,9 +66,11 @@ void getEEPROMdata()
     Data.storedCelsiusColorCheckbox = EEPROM.read(acelsiusColorCheckbox);
     Data.storedPercentageColorCheckbox = EEPROM.read(apercentageColorCheckbox);
     Data.storedBlinkPointCheckbox = EEPROM.read(ablinkPointCheckbox);
+    Data.firstZeroCheckbox = EEPROM.read(afirstZeroCheckbox);
 
     for (int i = 0; i < 12; i++) {
-        Serial.printf("\nbool %i", EEPROM.read(aFlagTable + i));
+        Data.storedFlagTable[i] = EEPROM.read(aFlagTable + i);
+        Serial.printf("\nbool %i", Data.storedFlagTable[i]);
     }
     Serial.println();
 
@@ -112,4 +114,6 @@ void getEEPROMdata()
     Serial.println(Data.storedPercentageColorCheckbox);
     Serial.print("Blink Point Checkbox: ");
     Serial.println(Data.storedBlinkPointCheckbox);
+    Serial.print("First Zero Checkbox: ");
+    Serial.println(Data.firstZeroCheckbox);
 }

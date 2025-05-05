@@ -4,6 +4,7 @@ int color = 0;
 
 timer timepoint(1000, 3);
 
+static DNSServer dnsServer;
 #ifdef ESP8266
 static ESP8266WebServer server(80);
 #else
@@ -14,69 +15,87 @@ bool _Status = false;
 bool _flag = false;
 byte connecting = 0;
 
+IPAddress apIP(SP_AP_IP);
+IPAddress Subnet(255, 255, 255, 0);
+
 byte MainPage::start(int tries)
 {
     static byte _try;
 
     if (connecting == 0)
     {
-        connecting = 1;
+        //connecting = 1;
 
-        Serial.printf("Connecting to %s ..", SSid);
+        // Serial.printf("Connecting to %s ..", SSid);
 
-        if (WiFi.config(ip, gateway, subnet, dns, dns2) == 0 || SSid[0] == '\0')
-        {
-            connecting = 3;
-            Serial.println(" error");
-        }
+        // if (WiFi.config(ip, gateway, subnet, dns, dns2) == 0 || SSid[0] == '\0')
+        // {
+        //     connecting = 3;
+        //     Serial.println(" error");
+        // }
 
-        WiFi.mode(WIFI_STA);
-        WiFi.begin(SSid, pass);
 
-        Wire.begin();
 
-        _try = 0;
+        WiFi.mode(WIFI_AP);
+        WiFi.softAPConfig(apIP, apIP, Subnet);
+        WiFi.softAP(SP_AP_NAME);
+
+        dnsServer.start(53, "*", apIP);
+
+        Serial.println(WiFi.localIP());
+
+        server.onNotFound([]()
+                          { server.send(200, "text/html", WebPage); });
+        server.on("/send", GetData);
+        server.begin();
+
+        _Status = true;
+        // WiFi.mode(WIFI_STA);
+
+        // WiFi.begin(SSid, pass);
+        // WiFi.setPhyMode(WIFI_PHY_MODE_11G);
+
+        // Wire.begin();
+
+        //_try = 0;
     }
 
     if (connecting == 1)
     {
-        if (WiFi.status() == WL_CONNECTED)
-        {
-            Serial.println(" success");
-            connecting = 2;
-        }
-        if (timepoint.status())
-        {
-            Serial.print('.');
-            _try++;
-        }
-        if (_try >= tries)
-        {
-            Serial.println(" error");
-            connecting = 3;
-        }
+        // if (true)
+        // {
+        //     Serial.println(" success");
+        //     connecting = 2;
+        // }
+        // if (timepoint.status())
+        // {
+        //     Serial.print('.');
+        //     _try++;
+        // }
+        // if (_try >= tries)
+        // {
+        //     Serial.println(" error");
+        //     connecting = 3;
+        // }
     }
 
     if (connecting == 2)
     {
-        Serial.println(WiFi.localIP());
+        // Serial.println(WiFi.localIP());
 
-        server.onNotFound([]()
-                          {server.send(200, "text/html", WebPage); 
-            });
-        server.on("/send", GetData);
-        server.begin();
+        // server.onNotFound([]()
+        //                   { server.send(200, "text/html", WebPage); });
+        // server.on("/send", GetData);
+        // server.begin();
 
         connecting = 4;
 
-        for (int i = 0; i < 4; i++)
-            if (WiFi.localIP()[i] != ip[i])
-            {
-                Serial.println(" error");
-                connecting = 3;
-            }
-
-        _Status = true;
+        // for (int i = 0; i < 4; i++)
+        //     if (WiFi.localIP()[i] != ip[i])
+        //     {
+        //         Serial.println(" error");
+        //         connecting = 3;
+        //     }
     }
     return connecting;
 }
@@ -84,34 +103,39 @@ byte MainPage::start(int tries)
 void MainPage::tick()
 {
     if (_Status)
+    {
+        dnsServer.processNextRequest();
         server.handleClient();
+    }
 }
 
 bool MainPage::status()
 {
-    if (WiFi.status() != WL_CONNECTED)
-    {
-        _Status = false;
-    }
+    // if (WiFi.status() != WL_CONNECTED)
+    // {
+    //     _Status = false;
+    // }
     return _Status;
 }
 
 void MainPage::stop()
 {
+    _Status = 0;
     WiFi.disconnect();
     WiFi.softAPdisconnect();
     server.close();
+    dnsServer.stop();
 }
 
 void MainPage::reset()
 {
     stop();
-    connecting = 0;
+    start(0);
 }
 
 void MainPage::send(String data)
 {
-    server.send(200, "text/plane", data);
+    // server.send(200, "text/plane", data);
 }
 
 void GetData()
@@ -119,7 +143,6 @@ void GetData()
     String str = server.arg("str");
     Serial.printf("\nReceived: %s\n", str.c_str());
 
-    // Разделение строки на части
     int firstSeparator = str.indexOf('|', 1);
     int secondSeparator = str.indexOf('|', firstSeparator + 1);
 
@@ -154,10 +177,15 @@ void GetData()
         {
             if (id == "ntpServer")
             {
-                value.toCharArray(Data.storedNtpServer, antpServerSize); // Запись в переменную
-                EEPROM.put(antpServer, Data.storedNtpServer);            // Запись в EEPROM
+                value.toCharArray(Data.storedNtpServer, antpServerSize);
+                EEPROM.put(antpServer, Data.storedNtpServer);
                 EEPROM.commit();
             }
+        }
+
+        if (type == "settime")
+        {
+            SetTime(value);
         }
 
         else if (type == "input-number" || type == "input-range")
@@ -280,14 +308,20 @@ void GetData()
                 EEPROM.put(ablinkPointCheckbox, byteValue);
                 EEPROM.commit();
             }
+            else if (id == "firstzero")
+            {
+                Data.firstZeroCheckbox = checked;
+                EEPROM.put(afirstZeroCheckbox, byteValue);
+                EEPROM.commit();
+            }
             else if (id.indexOf("colorCell") != -1)
             {
                 id.remove(0, 9);
-                byte index = id.toInt() - 1; // Получаем индекс флага (0-11)
+                byte index = id.toInt() - 1;
                 if (index >= 0 && index < 12)
                 {
                     Data.storedFlagTable[index] = checked;
-                    EEPROM.put(aFlagTable + index, byteValue); // Сохраняем флаг
+                    EEPROM.put(aFlagTable + index, byteValue);
                     EEPROM.commit();
                 }
             }

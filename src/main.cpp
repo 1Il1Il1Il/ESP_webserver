@@ -4,7 +4,8 @@ AccessPoint accessPoint;
 MainPage mainPage;
 handleLED HandleLED;
 time1 _time;
-//DFRobot_AHT20 aht20;
+DFRobot_AHT20 aht20;
+iarduino_DHT sensor(D5);
 
 timer restartAPtime(1000 * 60 * 15, 3);
 timer checkWiFi(1000 * 10, 3);
@@ -13,6 +14,7 @@ timer timeofget(10 * 60 * 1000, 3);
 timer SEND(1000, 3);
 timer printtime(1000, 3);
 timer updateSensorTimer(5000, 3);
+timer rt(1000*60*10, 3);
 
 bool firstconnect = 1;
 
@@ -21,23 +23,20 @@ bool APflag = true;
 
 void updateSensor();
 void show();
-void HandleConnect();
+// void HandleConnect();
+
 
 void setup()
 {
-    // uint8_t status;
-    // byte tries;
-    // while ((status = aht20.begin()) != 0 || tries++ >= 254)
-    // {
-    //     Serial.print("AHT20 sensor initialization failed. error status : ");
-    //     Serial.println(status);
-    //     delay(1000);
-    // }
+    aht20.begin();
+
+    Wire.begin(4, 5);
+    Wire.setClock(50000);
 
     Serial.begin(9600);
     Serial.printf("\n\n\n\n\n################################## START ##################################\n\n");
 
-    EEPROM.begin(512);
+    EEPROM.begin(1024);
 
     getEEPROMdata();
 
@@ -52,7 +51,12 @@ void setup()
     mainPage.stop();
 
     HandleLED.begin();
+
     updateSensor();
+
+    _time.begin();
+
+    mainPage.start(0);
 }
 
 void loop()
@@ -62,47 +66,52 @@ void loop()
     if (printtime.status())
         Serial.printf("\n%i:%i:%i\t\n", _time.curtime.Hour, _time.curtime.Minutes, _time.curtime.Seconds);
 
-    HandleConnect();
+    // HandleConnect();
 
     if (updateTime.status())
         HandleLED.tick();
 
     if (updateSensorTimer.status())
         updateSensor();
-}
 
-void HandleConnect()
-{
+    if (rt.status()) 
+        mainPage.reset();
 
     mainPage.tick();
-    accessPoint.tick();
-
-    if (_WiFimode == 0)
-    {
-        _WiFimode = mainPage.start(TRYCONN);
-        APflag = false;
-    }
-
-    if (_WiFimode == 1)
-    {
-        _WiFimode = mainPage.start(TRYCONN);
-    }
-
-    if (_WiFimode == 3 && !APflag)
-    {
-        mainPage.reset();
-        accessPoint.startCP();
-        restartAPtime.start();
-        APflag = true;
-    }
-
-    if (accessPoint.gotStatus() || (restartAPtime.status() && _WiFimode == 3) || (checkWiFi.status() && _WiFimode == 4 && !mainPage.status()))
-    {
-        accessPoint.stop();
-        mainPage.reset();
-        _WiFimode = 0;
-    }
 }
+
+// void HandleConnect()
+// {
+
+//     mainPage.tick();
+//     accessPoint.tick();
+
+//     if (_WiFimode == 0)
+//     {
+//         _WiFimode = mainPage.start(TRYCONN);
+//         APflag = false;
+//     }
+
+//     if (_WiFimode == 1)
+//     {
+//         _WiFimode = mainPage.start(TRYCONN);
+//     }
+
+//     if (_WiFimode == 3 && !APflag)
+//     {
+//         mainPage.reset();
+//         accessPoint.startCP();
+//         restartAPtime.start();
+//         APflag = true;
+//     }
+
+//     if ((rt.status())||(accessPoint.gotStatus() || (restartAPtime.status() && _WiFimode == 3) || (checkWiFi.status() && _WiFimode == 4 && !mainPage.status())))
+//     {
+//         accessPoint.stop();
+//         mainPage.reset();
+//         _WiFimode = 0;
+//     }
+// }
 
 void show()
 {
@@ -116,6 +125,9 @@ void show()
 
 void updateSensor()
 {
-    // HandleLED.Leddata.Temp = aht20.getTemperature_C();
-    // HandleLED.Leddata.Humidity = aht20.getHumidity_RH();
-}
+    sensor.read();
+    if(!aht20.startMeasurementReady(true)) return;
+    Serial.printf("\nT:%i\tH:%i\n", (byte)aht20.getTemperature_C(), (byte)sensor.hum);
+    HandleLED.Leddata.Temp = (byte)aht20.getTemperature_C();
+    HandleLED.Leddata.Humidity = (byte)sensor.hum;
+}   

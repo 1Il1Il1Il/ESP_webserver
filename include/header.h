@@ -1,13 +1,12 @@
-#define SP_AP_NAME "ESP Config"
-#define SP_AP_IP 192, 168, 1, 1
+#define SP_AP_IP 192, 168, 0, 1
+#define SP_AP_NAME "CHASI local: http://192.168.0.1"
 
 #define UPDATERATE 50
 
-#define PIN D3
+#define PIN D9
 #define NUMPIXELS 308
 
-#define TRYCONN 30
-#define TRYGET 5
+#define TRYCONN 120
 
 #ifndef HEADER_H
 #define HEADER_H
@@ -30,16 +29,20 @@
 #include <GyverNTP.h>
 #include <GyverDS3231Min.h>
 
-#include <FastLED.h>
+#include <Adafruit_NeoPixel.h>
 
+#include <Wire.h>
 
+#include <DFRobot_AHT20.h>
+#include <iarduino_DHT.h>
 
-//#include <DFRobot_AHT20.h>
+#include <GyverDS3231.h>
+
 
 extern WiFiClient wifiClient; 
 
 extern const String loginWebPage;
-extern const String WebPage;
+extern String WebPage;
 
 extern int color;
 
@@ -48,10 +51,22 @@ void handleConnect();
 void getEEPROMdata();
 void GetData();
 
+void SetTime(String value);
+
 IPAddress strtoip(String str);
 
 float fract(float x);
 float mix(float a, float b, float t);
+
+struct CRGB {
+    uint8_t r, g, b;
+    
+    CRGB(uint8_t red, uint8_t green, uint8_t blue) : r(red), g(green), b(blue) {}
+    
+    uint32_t to_uint32() const {
+        return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
+    }
+  };
 
 struct data
 {
@@ -75,6 +90,7 @@ struct data
     bool storedPercentageColorCheckbox;
     bool storedBlinkPointCheckbox;
     bool storedFlagTable[12];
+    bool firstZeroCheckbox;
 };
 extern data Data;
 
@@ -140,8 +156,8 @@ private:
     void show(byte ind, byte num, bool zero);
 public:
     handleLED();
-    void begin();
     void tick();
+    void begin();
 
     leddata Leddata;
 };
@@ -164,6 +180,7 @@ class time1
 {
 public:
     time1();
+    void begin();
     void tick();
     Curtime curtime;
 };
