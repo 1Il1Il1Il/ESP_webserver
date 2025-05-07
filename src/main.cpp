@@ -128,6 +128,6 @@ void updateSensor()
     sensor.read();
     if(!aht20.startMeasurementReady(true)) return;
     Serial.printf("\nT:%i\tH:%i\n", (byte)aht20.getTemperature_C(), (byte)sensor.hum);
-    HandleLED.Leddata.Temp = (byte)aht20.getTemperature_C();
+    HandleLED.Leddata.Temp = (byte)aht20.getTemperature_C() - 5;
     HandleLED.Leddata.Humidity = (byte)sensor.hum;
 }   

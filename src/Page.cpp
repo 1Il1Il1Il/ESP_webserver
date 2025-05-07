@@ -260,10 +260,6 @@ String WebPage = R"rawliteral(
                 <h2>Real time:</h2>
                 <h3>Set Real Time: <button onclick="sendCurrentTime()">Sync Time</button></h3>
                 </div>
-            <div class="box">
-                <h2>Color</h2>
-                <h3>BRIGHTNESS <input class="obj2" type="range" min="0" max="100" step="1" value="100" id="brightnessRange"
-                        onchange="sendInput('brightnessRange', 'range')"></h3>
                 <table>
                     <tbody>
                         <tr>
@@ -274,92 +270,6 @@ String WebPage = R"rawliteral(
                             <td><b>Color</b><input type="color" id="staticColor"
                                     onchange="sendInput('staticColor', 'color')"></td>
                             <td></td>
-                        </tr>
-                        <tr>
-                            <td><b>Spectrum</b></td>
-                            <td><input type="checkbox" class="modes" id="spectrumCheckbox"
-                                    onclick="uncheckOthers('spectrumCheckbox')" onchange="toggleMode('spectrumCheckbox')">
-                            </td>
-                            <td></td>
-                            <td><b>speed, %</b> <input type="number" id="spectrumSpeed"
-                                    onchange="sendInput('spectrumSpeed', 'number')"></td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td><b>Gradient</b></td>
-                            <td><input type="checkbox" class="modes" id="gradientCheckbox"
-                                    onclick="uncheckOthers('gradientCheckbox')" onchange="toggleMode('gradientCheckbox')">
-                            </td>
-                            <td><b>x, %</b> <input type="range" id="gradientShift"
-                                    onchange="sendInput('gradientShift', 'range')"></td>
-                            <td><b>y, %</b> <input type="range" id="gradientSize"
-                                    onchange="sendInput('gradientSize', 'range')"></td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td><b>Period</b></td>
-                            <td><input type="checkbox" class="modes" id="periodCheckbox"
-                                    onclick="uncheckOthers('periodCheckbox')" onchange="toggleMode('periodCheckbox')"></td>
-                            <td></td>
-                            <td><b>period, hour</b> <input type="number" id="periodHour"
-                                    onchange="sendInput('periodHour', 'number')"></td>
-                            <td></td>
-                        </tr>
-                    </tbody>
-                </table>
-                <table>
-                    <tbody>
-                        <tr>
-                            <td class="color-cell" style="background-color: rgb(255, 0, 0);">
-                                <button onclick="sendCheckbox2('colorCell1', 1)">en</button>
-                                <button onclick="sendCheckbox2('colorCell1', 0)">dis</button><br>
-                            </td>
-                            <td class="color-cell" style="background-color: rgb(255, 0, 125);">
-                                <button onclick="sendCheckbox2('colorCell2', 1)">en</button>
-                                <button onclick="sendCheckbox2('colorCell2', 0)">dis</button><br>
-                            </td>
-                            <td class="color-cell" style="background-color: rgb(255, 0, 255);">
-                                <button onclick="sendCheckbox2('colorCell3', 1)">en</button>
-                                <button onclick="sendCheckbox2('colorCell3', 0)">dis</button><br>
-                            </td>
-                            <td class="color-cell" style="background-color: rgb(75, 20, 255);">
-                                <button onclick="sendCheckbox2('colorCell4', 1)">en</button>
-                                <button onclick="sendCheckbox2('colorCell4', 0)">dis</button><br>
-                            </td>
-                            <td class="color-cell" style="background-color: rgb(30, 99, 255);">
-                                <button onclick="sendCheckbox2('colorCell5', 1)">en</button>
-                                <button onclick="sendCheckbox2('colorCell5', 0)">dis</button><br>
-                            </td>
-                            <td class="color-cell" style="background-color: rgb(0, 255, 255);">
-                                <button onclick="sendCheckbox2('colorCell6', 1)">en</button>
-                                <button onclick="sendCheckbox2('colorCell6', 0)">dis</button><br>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="color-cell" style="background-color: rgb(0, 255, 125);">
-                                <button onclick="sendCheckbox2('colorCell7', 1)">en</button>
-                                <button onclick="sendCheckbox2('colorCell7', 0)">dis</button><br>
-                            </td>
-                            <td class="color-cell" style="background-color: rgb(0, 255, 0);">
-                                <button onclick="sendCheckbox2('colorCell8', 1)">en</button>
-                                <button onclick="sendCheckbox2('colorCell8', 0)">dis</button><br>
-                            </td>
-                            <td class="color-cell" style="background-color: rgb(125, 255, 0);">
-                                <button onclick="sendCheckbox2('colorCell9', 1)">en</button>
-                                <button onclick="sendCheckbox2('colorCell9', 0)">dis</button><br>
-                            </td>
-                            <td class="color-cell" style="background-color: rgb(255, 255, 0);">
-                                <button onclick="sendCheckbox2('colorCell10', 1)">en</button>
-                                <button onclick="sendCheckbox2('colorCell10', 0)">dis</button><br>
-                            </td>
-                            <td class="color-cell" style="background-color: rgb(255, 125, 0);">
-                                <button onclick="sendCheckbox2('colorCell11', 1)">en</button>
-                                <button onclick="sendCheckbox2('colorCell11', 0)">dis</button><br>
-                            </td>
-                            <td class="color-cell" style="background-color: rgb(255, 75, 0);">
-                                <button onclick="sendCheckbox2('colorCell12', 1)">en</button>
-                                <button onclick="sendCheckbox2('colorCell12', 0)">dis</button><br>
-                            </td>
                         </tr>
                     </tbody>
                 </table>

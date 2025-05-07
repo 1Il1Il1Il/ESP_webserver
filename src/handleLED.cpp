@@ -209,56 +209,12 @@ void handleLED::tick()
     if (Data.storedStaticCheckbox)
         fillColor(1, 0, 0, hex2rgb(Data.storedStaticColor));
 
-    if (Data.storedSpectrumCheckbox)
-    {
-        if (Speed != Data.storedSpectrumSpeed)
-        {
-            Speed = Data.storedSpectrumSpeed;
-            ChngNum.Max((int)((float)STEPS / (Speed / 100)));
-        }
-
-        fillColor(0, 0, 0, CRGB(0, 0, 0));
-    }
 
     if (Data.storedGradientCheckbox)
     {
         fillColor(2, Data.storedGradientShift, Data.storedGradientSize, CRGB(0, 0, 0));
     }
 
-    if (Data.storedPeriodCheckbox)
-    {
-        bool flag = 0;
-        for (byte i = 0; i < sizeof(Data.storedFlagTable) / sizeof(bool) / 3; i++)
-            if (Data.storedFlagTable[i])
-                flag = 1;
-        if (!flag)
-            return;
-
-        if (chngColortimer != Data.storedPeriodHour * 3600 * 1000)
-        {
-            chngColortimer = Data.storedPeriodHour * 3600 * 1000;
-            chngColorlt = millis();
-            currentcolor = 0;
-        }
-
-        if (millis() - chngColorlt >= chngColortimer || !Data.storedFlagTable[currentcolor])
-        {
-
-            chngColorlt = millis();
-            currentcolor++;
-            if (currentcolor >= sizeof(maincolors) / sizeof(byte) / 3)
-                currentcolor = 0;
-
-            while (!Data.storedFlagTable[currentcolor])
-            {
-                currentcolor++;
-                if (currentcolor >= sizeof(maincolors) / sizeof(byte) / 3)
-                    currentcolor = 0;
-            }
-        }
-        
-        fillColor(3, currentcolor, 0, CRGB(0, 0, 0));
-    }
 
     if (Data.storedCelsiusColorCheckbox)
     {

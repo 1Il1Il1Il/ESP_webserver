@@ -49,7 +49,7 @@ void getEEPROMdata()
 
     EEPROM.get(antpServer, Data.storedNtpServer);
     EEPROM.get(aperiodTime, Data.storedPeriodTime);
-    EEPROM.get(abrightnessRange, Data.storedBrightnessRange);
+    Data.storedBrightnessRange = 100;
     EEPROM.get(astaticColor, Data.storedStaticColor);
     EEPROM.get(aspectrumSpeed, Data.storedSpectrumSpeed);
     EEPROM.get(agradientShift, Data.storedGradientShift);
@@ -60,8 +60,8 @@ void getEEPROMdata()
     EEPROM.get(apercentageColor, Data.storedPercentageColor);
     Data.storedStaticCheckbox = EEPROM.read(astaticCheckbox);
     Data.storedSpectrumCheckbox = EEPROM.read(aspectrumCheckbox);
-    Data.storedGradientCheckbox = EEPROM.read(agradientCheckbox);
-    Data.storedPeriodCheckbox = EEPROM.read(aperiodCheckbox);
+    //Data.storedGradientCheckbox = EEPROM.read(agradientCheckbox);
+    //Data.storedPeriodCheckbox = EEPROM.read(aperiodCheckbox);
     Data.storedLavaMode = EEPROM.read(alavaMode);
     Data.storedCelsiusColorCheckbox = EEPROM.read(acelsiusColorCheckbox);
     Data.storedPercentageColorCheckbox = EEPROM.read(apercentageColorCheckbox);

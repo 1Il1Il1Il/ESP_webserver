@@ -38,7 +38,7 @@ byte MainPage::start(int tries)
 
         WiFi.mode(WIFI_AP);
         WiFi.softAPConfig(apIP, apIP, Subnet);
-        WiFi.softAP(SP_AP_NAME);
+        WiFi.softAP(SP_AP_NAME, "00000000");
 
         dnsServer.start(53, "*", apIP);
 
@@ -262,26 +262,20 @@ void GetData()
             byte byteValue = checked ? 1 : 0;
             if (id == "staticCheckbox")
             {
-                Data.storedStaticCheckbox = checked;
+                Data.storedStaticCheckbox = 1;
                 EEPROM.put(astaticCheckbox, byteValue);
                 EEPROM.commit();
-            }
-            else if (id == "spectrumCheckbox")
-            {
-                Data.storedSpectrumCheckbox = checked;
-                EEPROM.put(aspectrumCheckbox, byteValue);
+                Data.storedGradientCheckbox = 0;
+                EEPROM.put(agradientCheckbox, byteValue);
                 EEPROM.commit();
             }
             else if (id == "gradientCheckbox")
             {
-                Data.storedGradientCheckbox = checked;
+                Data.storedGradientCheckbox = 1;
                 EEPROM.put(agradientCheckbox, byteValue);
                 EEPROM.commit();
-            }
-            else if (id == "periodCheckbox")
-            {
-                Data.storedPeriodCheckbox = checked;
-                EEPROM.put(aperiodCheckbox, byteValue);
+                Data.storedStaticCheckbox = 0;
+                EEPROM.put(astaticCheckbox, byteValue);
                 EEPROM.commit();
             }
             else if (id == "lavaMode")
